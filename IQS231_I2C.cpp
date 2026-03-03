@@ -61,7 +61,7 @@ bool IQS231_I2C::isPresent()
   constexpr uint8_t numBytes = 2;
   _wire->beginTransmission(_i2cAddr);
   _wire->write(0x00);
-  if (!_wire->endTransmission())
+  if (_wire->endTransmission() != 0)
   {
     dbg_print("No ACK\n");
     return false;
