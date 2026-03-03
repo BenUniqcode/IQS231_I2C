@@ -26,6 +26,8 @@ public:
 
   bool begin(uint8_t i2cAddr = IQS231_DEFAULT_ADDRESS, TwoWire *wire = &Wire);
   bool isPresent();
+  bool readRegister(uint8_t regAddr, uint8_t *result, uint8_t *events = nullptr);
+  bool readRegisters(uint8_t startAddr, uint8_t *result, size_t numBytes, uint8_t *events = nullptr);
 
 protected:
 
@@ -33,7 +35,7 @@ private:
   TwoWire *_wire;
   uint8_t _i2cAddr;
   size_t dbg_print(const char *s);
-  size_t dbg_println(const char *s);
+  size_t dbg_println(const char *s = "");
   template <typename... Types> size_t dbg_printf(Types&&... args);
 };
 

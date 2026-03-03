@@ -58,30 +58,16 @@ bool IQS231_I2C::isPresent()
     return false;
   }
   // Now check it's the expected thing
+  uint8_t events;
+  uint8_t buf[2];
+  if (!readRegisters(0x00, buf, 2, &events)) {
+    dbg_println("Register read failed");
+    return false;
+  }
+  dbg_printf("Events: %02x\n", events);
+  
   // Register 0x00 should return 0x40
   // Register 0x01 should return 0x06 (IQS231A) or 0x07 (IQS231B)
-  constexpr uint8_t numBytes = 2;
-  _wire->beginTransmission(_i2cAddr);
-  _wire->write(0x00);
-  if (_wire->endTransmission() != 0)
-  {
-    dbg_print("No ACK\n");
-    return false;
-  }
-
-  // Remember that all register reads first return the MAIN_EVENTS byte, so we must request an extra byte
-  _wire->requestFrom(_i2cAddr, numBytes + 1U);
-  if (!_wire->available()) {
-    dbg_print("No data came back");
-    return false;
-  }
-
-  uint8_t events = _wire->read();
-  uint8_t buf[numBytes] = {0x00, 0x00};
-  for (uint8_t i = 0; i < numBytes; i++)
-  {
-    buf[i] = _wire->read();
-  }
   if (buf[0] == 0x40)
   {
     if (buf[1] == 0x06)
@@ -100,3 +86,47 @@ bool IQS231_I2C::isPresent()
   dbg_printf("Product number incorrect - expected 0x40, got 0x%02x\n", buf[0]);
   return false;
 }
+
+// Read the single byte register at regAddr, and put it in the uint8_t pointed to by result
+// If events is specified, the MAIN_EVENTS byte (which is always returned from every read) 
+// is put in the uint8_t pointed to by it, otherwise it's discarded.
+bool IQS231_I2C::readRegister(uint8_t regAddr, uint8_t *result, uint8_t *events)
+{
+  return readRegisters(regAddr, result, 1U, events);
+}
+
+// Read numBytes consecutive registers starting from startAddr, and put them in the array 
+// of size numBytes pointed to by result. 
+bool IQS231_I2C::readRegisters(uint8_t startAddr, uint8_t *result, size_t numBytes, uint8_t *events)
+{
+  _wire->beginTransmission(_i2cAddr);
+  dbg_printf("Requesting %u bytes from address %u\n", numBytes, startAddr);
+  _wire->write(startAddr);
+  if (_wire->endTransmission() != 0)
+  {
+    dbg_println("No ACK from device");
+    return false;
+  }
+
+  // Remember that all register reads first return the MAIN_EVENTS byte, so we must request an extra byte
+  _wire->requestFrom(_i2cAddr, numBytes + 1U);
+  if (!_wire->available()) {
+    dbg_println("No data received");
+    return false;
+  }
+
+  // All reads return the MAIN_EVENTS byte first
+  uint8_t ev = _wire->read();
+  dbg_printf("Read: MAIN_EVENTS: %02x\n", ev);
+  if (events != nullptr)
+  {
+    *events = ev;
+  }
+  for (uint8_t i = 0; i < numBytes; i++)
+  {
+    result[i] = _wire->read();
+    dbg_printf("Read: %02x\n", result[i]); 
+  }
+  return true;
+}
+
