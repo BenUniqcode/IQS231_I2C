@@ -13,14 +13,19 @@
 #ifndef IQS231_I2C_H
 #define IQS231_I2C_H
 
-#include "Arduino.h"
+#include <Arduino.h>
+#include <Wire.h>
 
 // The default I2C address is 0x44. 
 #define IQS231_DEFAULT_ADDRESS 0x44
 
 class IQS231_I2C {
 public:
+  IQS231_I2C();
+  ~IQS231_I2C();
+
   bool begin(uint8_t i2cAddr = IQS231_DEFAULT_ADDRESS, TwoWire *wire = &Wire);
+  bool isPresent();
 
 protected:
 
@@ -28,7 +33,8 @@ private:
   TwoWire *_wire;
   uint8_t _i2cAddr;
   size_t dbg_print(const char *s);
-  size_t dbg_printf(const char *fmt, ...);
+  size_t dbg_println(const char *s);
+  template <typename... Types> size_t dbg_printf(Types&&... args);
 };
 
 #endif
