@@ -19,17 +19,20 @@ IQS231_I2C::~IQS231_I2C(void) {}
 
 size_t IQS231_I2C::dbg_print(const char *s)
 {
+  Serial.print("IQS231_I2C: ");
   return Serial.print(s);
 }
 
 size_t IQS231_I2C::dbg_println(const char *s)
 {
+  Serial.print("IQS231_I2C: ");
   return Serial.println(s);
 }
 
 template <typename... Types>
 size_t IQS231_I2C::dbg_printf(Types&&... args)
 {
+  Serial.print("IQS231_I2C: ");
   return Serial.printf(std::forward<Types>(args)...);
 }
 
@@ -55,9 +58,8 @@ bool IQS231_I2C::isPresent()
     return false;
   }
   // Now check it's the expected thing
-  // Register 0 should return 0x40
-  // Register 1 should return 0x06 (IQS231A) or 0x07 (IQS231B)
-  // Remember that all register reads first return the MAIN_EVENTS byte
+  // Register 0x00 should return 0x40
+  // Register 0x01 should return 0x06 (IQS231A) or 0x07 (IQS231B)
   constexpr uint8_t numBytes = 2;
   _wire->beginTransmission(_i2cAddr);
   _wire->write(0x00);
@@ -67,7 +69,8 @@ bool IQS231_I2C::isPresent()
     return false;
   }
 
-  _wire->requestFrom(_i2cAddr, numBytes);
+  // Remember that all register reads first return the MAIN_EVENTS byte, so we must request an extra byte
+  _wire->requestFrom(_i2cAddr, numBytes + 1U);
   if (!_wire->available()) {
     dbg_print("No data came back");
     return false;
