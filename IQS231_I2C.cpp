@@ -54,7 +54,7 @@ bool IQS231_I2C::isPresent()
   _wire->beginTransmission(_i2cAddr);
   if (_wire->endTransmission() != 0)
   {
-    dbg_printf("No response from address %u\n", _i2cAddr);
+    dbg_printf("No response from address %02x\n", _i2cAddr);
     return false;
   }
   // Now check it's the expected thing
@@ -100,7 +100,7 @@ bool IQS231_I2C::readRegister(uint8_t regAddr, uint8_t *result, uint8_t *events)
 bool IQS231_I2C::readRegisters(uint8_t startAddr, uint8_t *result, size_t numBytes, uint8_t *events)
 {
   _wire->beginTransmission(_i2cAddr);
-  dbg_printf("Requesting %u bytes from address %u\n", numBytes, startAddr);
+  dbg_printf("Requesting %u bytes from address %02x\n", numBytes, startAddr);
   _wire->write(startAddr);
   if (_wire->endTransmission() != 0)
   {
@@ -130,3 +130,16 @@ bool IQS231_I2C::readRegisters(uint8_t startAddr, uint8_t *result, size_t numByt
   return true;
 }
 
+bool IQS231_I2C::writeRegister(uint8_t regAddr, uint8_t value)
+{
+  _wire->beginTransmission(_i2cAddr);
+  dbg_printf("Writing value %02x to address %02x\n", value, regAddr);
+  _wire->write(regAddr);
+  _wire->write(value);
+  if (_wire->endTransmission() != 0)
+  {
+    dbg_println("No ACK from device");
+    return false;
+  }
+  return true;
+}

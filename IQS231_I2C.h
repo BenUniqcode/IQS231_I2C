@@ -49,6 +49,7 @@ public:
   bool isPresent();
   bool readRegister(uint8_t regAddr, uint8_t *result, uint8_t *events = nullptr);
   bool readRegisters(uint8_t startAddr, uint8_t *result, size_t numBytes, uint8_t *events = nullptr);
+  bool writeRegister(uint8_t regAddr, uint8_t value);
 
 protected:
 
