@@ -17,6 +17,7 @@ IQS231_I2C::IQS231_I2C(void) {}
 
 IQS231_I2C::~IQS231_I2C(void) {}
 
+#ifdef DEBUG_IQS231
 size_t IQS231_I2C::dbg_print(const char *s)
 {
   Serial.print("IQS231_I2C: ");
@@ -35,6 +36,11 @@ size_t IQS231_I2C::dbg_printf(Types&&... args)
   Serial.print("IQS231_I2C: ");
   return Serial.printf(std::forward<Types>(args)...);
 }
+#else
+#define dbg_print(x) /**/
+#define dbg_println(x) /**/
+#define dbg_printf(x...) /**/
+#endif
 
 bool IQS231_I2C::begin(uint8_t i2cAddr, TwoWire *wire)
 {

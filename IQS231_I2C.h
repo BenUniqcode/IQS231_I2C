@@ -56,9 +56,11 @@ protected:
 private:
   TwoWire *_wire;
   uint8_t _i2cAddr;
+#ifdef DEBUG_IQS231
   size_t dbg_print(const char *s);
   size_t dbg_println(const char *s = "");
   template <typename... Types> size_t dbg_printf(Types&&... args);
+#endif
 };
 
 #endif
