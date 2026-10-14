@@ -105,10 +105,11 @@ bool IQS231_I2C::readRegister(uint8_t regAddr, uint8_t *result, uint8_t *events)
 // of size numBytes pointed to by result. 
 bool IQS231_I2C::readRegisters(uint8_t startAddr, uint8_t *result, size_t numBytes, uint8_t *events)
 {
-  _wire->beginTransmission(_i2cAddr);
   dbg_printf("Requesting %u bytes from address %02x\n", numBytes, startAddr);
+  _wire->beginTransmission(_i2cAddr);
   _wire->write(startAddr);
-  if (_wire->endTransmission() != 0)
+  // The IQS231 requires a Repeated Start command rather than a Stop Start, hence the "false" here:
+  if (_wire->endTransmission(false) != 0)
   {
     dbg_println("No ACK from device");
     return false;
@@ -138,8 +139,8 @@ bool IQS231_I2C::readRegisters(uint8_t startAddr, uint8_t *result, size_t numByt
 
 bool IQS231_I2C::writeRegister(uint8_t regAddr, uint8_t value)
 {
-  _wire->beginTransmission(_i2cAddr);
   dbg_printf("Writing value %02x to address %02x\n", value, regAddr);
+  _wire->beginTransmission(_i2cAddr);
   _wire->write(regAddr);
   _wire->write(value);
   if (_wire->endTransmission() != 0)
