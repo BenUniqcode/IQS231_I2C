@@ -140,13 +140,38 @@ bool IQS231_I2C::readRegisters(uint8_t startAddr, uint8_t *result, size_t numByt
 bool IQS231_I2C::writeRegister(uint8_t regAddr, uint8_t value)
 {
   dbg_printf("Writing value %02x to address %02x\n", value, regAddr);
-  _wire->beginTransmission(_i2cAddr);
-  _wire->write(regAddr);
-  _wire->write(value);
-  if (_wire->endTransmission() != 0)
-  {
-    dbg_println("No ACK from device");
-    return false;
+  delay(10);
+  bool success = false;
+  constexpr int NUM_ATTEMPTS = 10;
+  int i = NUM_ATTEMPTS;
+  while (!success && i--) {
+    _wire->beginTransmission(_i2cAddr);
+    _wire->write(regAddr);
+    _wire->write(value);
+    if (_wire->endTransmission() != 0)
+    {
+      dbg_println("No ACK from device");
+      delay(11);
+    }
+    else
+    {
+      success = true;
+    }
   }
-  return true;
+  if (success)
+  {
+    if (i == NUM_ATTEMPTS - 1)
+    {
+      Serial.println("Write success on first attempt");
+    }
+    else
+    {
+      Serial.printf("Write success after %d attempts\n", NUM_ATTEMPTS - i);
+    }
+  }
+  else
+  {
+    Serial.println("Write failed after 10 attempts");
+  }
+  return success;
 }
